@@ -3,15 +3,18 @@
 #include "card.h"
 #include "debug.h"
 
+constexpr int WIDTH = 900;
+constexpr int HEIGHT = 600;
+
 int main(int argc, char** argv) {
 
-	// SetTraceLogLevel(LOG_WARNING);
-	InitWindow(900, 600, "Solitaire");
+	SetTraceLogLevel(LOG_WARNING);
+	InitWindow(WIDTH, HEIGHT, "Solitaire");
 
 	Texture2D SpadesAtlas = {};
 	LoadTextureCard(&SpadesAtlas, "res/Poker/Top-Down/Cards/Spades-88x124.png");
 
-	Card Deck = {A, true, {50, 50}};
+	Card Deck[2] = {{A, false, {50, 50}}, {2, true, {100, 50}}};
 	Card *Selected = nullptr;
 
 	Vector2 MousePosition = {0, 0};
@@ -22,12 +25,17 @@ int main(int argc, char** argv) {
 
 		Debug();
 
-		if (CheckCollisionPointRec(GetMousePosition(), (Rectangle) {Deck.position.x, Deck.position.y, 88, 124})) {
-			Selected = &Deck;
-		}
-		else {
-			if (!MouseHold)
-				Selected = nullptr;
+		for (int i = 0; i < sizeof(Deck) / sizeof(Card); i++){
+			if (CheckCollisionPointRec(GetMousePosition(), (Rectangle) {Deck[i].position.x, Deck[i].position.y, 88, 124})) {
+				if (Deck[i].show){
+					Selected = &Deck[i];
+					break;
+				}
+			}
+			else {
+				if (!MouseHold)
+					Selected = nullptr;
+			}
 		}
 
 		if (IsMouseButtonDown(MOUSE_LEFT_BUTTON) && Selected) {
@@ -46,8 +54,10 @@ int main(int argc, char** argv) {
 
 		ClearBackground((Color) {51, 87, 171, 255});
 
-		DrawCard(SpadesAtlas, Deck);
-
+		for (int i = 0; i < sizeof(Deck) / sizeof(Card); i++){
+			DrawCard(SpadesAtlas, Deck[i]);
+		}
+		
 		if (Selected)
 			DrawCardBorder(SpadesAtlas, *Selected);
 
