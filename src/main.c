@@ -26,7 +26,8 @@ int main(int argc, char** argv) {
 			Selected = &Deck;
 		}
 		else {
-			Selected = nullptr;
+			if (!MouseHold)
+				Selected = nullptr;
 		}
 
 		if (IsMouseButtonDown(MOUSE_LEFT_BUTTON) && Selected) {
