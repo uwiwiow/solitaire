@@ -14,7 +14,11 @@ int main(int argc, char** argv) {
 	Texture2D SpadesAtlas = {};
 	LoadTextureCard(&SpadesAtlas, "res/Poker/Top-Down/Cards/Spades-88x124.png");
 
-	Card Deck[2] = {{A, false, {50, 50}}, {2, true, {100, 50}}};
+	Card Deck[52] = {};
+	for (int i = 0; i < 52; i++) {
+		Deck[i] = (Card) {i % 13, true, {50 + (i % 13) * 60, 50 + (i / 13) * 130}};
+	}
+	
 	Card *Selected = nullptr;
 
 	Vector2 MousePosition = {0, 0};
@@ -56,10 +60,12 @@ int main(int argc, char** argv) {
 
 		for (int i = 0; i < sizeof(Deck) / sizeof(Card); i++){
 			DrawCard(SpadesAtlas, Deck[i]);
+			if (Selected){
+				if (Vector2Equals(Selected->position, Deck[i].position))
+					DrawCardBorder(SpadesAtlas, *Selected);
+			}
+			
 		}
-		
-		if (Selected)
-			DrawCardBorder(SpadesAtlas, *Selected);
 
 
 		DebugDraw(

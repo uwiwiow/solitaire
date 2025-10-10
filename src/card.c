@@ -17,13 +17,13 @@ Rectangle GetCardRect(int index) {
 }
 
 void DrawCard(Texture2D atlas, Card card) {
-    Rectangle src = GetCardRect(card.show? card.number - 1 : BACK - 1);
+    Rectangle src = GetCardRect(card.show? card.number : BACK);
     Rectangle dest = { card.position.x, card.position.y, src.width, src.height };
     DrawTexturePro(atlas, src, dest, (Vector2){0, 0}, 0.0f, WHITE);
 }
 
 void DrawCardBorder(Texture2D atlas, Card card) {
-    Rectangle src = GetCardRect(BORDER - 1);
+    Rectangle src = GetCardRect(BORDER);
     Rectangle dest = { card.position.x, card.position.y, src.width, src.height };
     DrawTexturePro(atlas, src, dest, (Vector2){0, 0}, 0.0f, WHITE);
 }

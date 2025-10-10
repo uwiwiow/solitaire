@@ -3,7 +3,7 @@
 
 #include <raylib.h>
 
-enum CardNumber { A = 1, J = 11, Q = 12, K = 13, BACK = 14, BORDER = 15};
+enum CardNumber { A = 0, J = 10, Q, K, BACK, BORDER};
 
 typedef struct Card {
 	int number;
