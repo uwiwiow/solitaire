@@ -1,4 +1,5 @@
 #include <raylib.h>
+#include <raymath.h>
 #include <stdlib.h>
 #include "card.h"
 #include "pile.h"
@@ -20,6 +21,8 @@ int main(int argc, char** argv) {
 	for (int i = 0; i < DeckSize; i++) {
 		Deck[i] = (Card) {i % 13, false, {0, 0}};
 	}
+
+	static Card *Selected = nullptr;
 
 	constexpr int PileSize = 7;
 	Pile* Piles[PileSize] = {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr};
@@ -46,6 +49,16 @@ int main(int argc, char** argv) {
 
 		Debug();
 
+		for (int i = 0; i < DeckSize; i++) {
+			if (!Deck[i].show) {
+				continue;
+			}
+			const Rectangle CardRect = {Deck[i].position.x, Deck[i].position.y, CARD_WIDTH, CARD_HEIGHT};
+			if (CheckCollisionPointRec(GetMousePosition(), CardRect)) {
+				Selected = &Deck[i];
+			}
+		}
+
 
 		BeginDrawing();
 
@@ -53,10 +66,10 @@ int main(int argc, char** argv) {
 
 		for (int i = 0; i < DeckSize; i++){
 			DrawCard(SpadesAtlas, Deck[i]);
-			// if (Selected){
-			// 	if (Vector2Equals(Selected->position, Deck[i].position))
-			// 		DrawCardBorder(SpadesAtlas, *Selected);
-			// }
+			if (Selected){
+				if (Vector2Equals(Selected->position, Deck[i].position))
+					DrawCardBorder(SpadesAtlas, *Selected);
+			}
 			
 		}
 
@@ -91,7 +104,7 @@ int main(int argc, char** argv) {
 		free(current);
 		current = next;
 	}
-	Stock = NULL;
+	Stock = nullptr;
 
 
 	return 0;

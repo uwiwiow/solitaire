@@ -4,8 +4,8 @@
 Pile* NewPile(Card *card) {
     Pile* pile = malloc(sizeof(Pile));
     pile->card = card;
-    pile->prev = NULL;
-    pile->next = NULL;
+    pile->prev = nullptr;
+    pile->next = nullptr;
     return pile;
 }
 

@@ -8,12 +8,9 @@ void LoadTextureCard(Texture2D *CardAtlas, char* filename) {
 }
 
 Rectangle GetCardRect(int index) {
-    int cols = 5;
-    int cardW = 88;
-    int cardH = 124;
-    int x = (index % cols) * cardW;
-    int y = (index / cols) * cardH;
-    return (Rectangle){ (float)x, (float)y, (float)cardW, (float)cardH };
+    int x = (index % CARD_ATLAS_COLS) * CARD_WIDTH;
+    int y = (index / CARD_ATLAS_COLS) * CARD_HEIGHT;
+    return (Rectangle){ (float)x, (float)y, (float)CARD_WIDTH, (float)CARD_HEIGHT };
 }
 
 void DrawCard(Texture2D atlas, Card card) {
