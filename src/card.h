@@ -11,11 +11,6 @@ typedef struct Card {
 	Vector2 position;
 } Card;
 
-typedef struct Pile {
-	Card *card;
-	Card *next;
-} Pile;
-
 void LoadTextureCard(Texture2D *CardAtlas, char* filename);
 
 void DrawCard(Texture2D atlas, Card card);
