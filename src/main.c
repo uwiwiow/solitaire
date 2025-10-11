@@ -1,10 +1,11 @@
 #include <raylib.h>
-#include <raymath.h>
+#include <stdlib.h>
 #include "card.h"
+#include "pile.h"
 #include "debug.h"
 
-constexpr int WIDTH = 900;
-constexpr int HEIGHT = 600;
+constexpr int WIDTH = 1240;
+constexpr int HEIGHT = 720;
 
 int main(int argc, char** argv) {
 
@@ -14,62 +15,54 @@ int main(int argc, char** argv) {
 	Texture2D SpadesAtlas = {};
 	LoadTextureCard(&SpadesAtlas, "res/Poker/Top-Down/Cards/Spades-88x124.png");
 
-	Card Deck[52] = {};
-	for (int i = 0; i < 52; i++) {
-		Deck[i] = (Card) {i % 13, true, {50 + (i % 13) * 60, 50 + (i / 13) * 130}};
+	constexpr int DeckSize = 52;
+	Card Deck[DeckSize] = {};
+	for (int i = 0; i < DeckSize; i++) {
+		Deck[i] = (Card) {i % 13, false, {0, 0}};
 	}
-	
-	Card *Selected = nullptr;
 
-	Vector2 MousePosition = {0, 0};
-	bool MouseHold = false;
-	Vector2 MouseOffset = {0, 0};
+	constexpr int PileSize = 7;
+	Pile* Piles[PileSize] = {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr};
+	int CardIndex = 0;
+	for (int pile = 0; pile < PileSize; pile++) {
+		for (int pileAmount = 0; pileAmount <= pile; pileAmount++) {
+			if (pileAmount == pile)
+				Deck[CardIndex].show = true;
+			Deck[CardIndex].position = (Vector2) { 80 + (float) pile * 160, 50 + (float) pileAmount * 25};
+			AppendCard(&Piles[pile], &Deck[CardIndex]);
+			CardIndex++;
+		}
+	}
+
+	constexpr int StockSize = 24;
+	Pile* Stock = {};
+	for (int pileAmount = 0; pileAmount < StockSize; pileAmount++) {
+		Deck[CardIndex].position = (Vector2) {WIDTH - 200, HEIGHT - 180 - (float) pileAmount * 2};
+		AppendCard(&Stock, &Deck[CardIndex]);
+		CardIndex++;
+	}
 
 	while(!WindowShouldClose()) {
 
 		Debug();
 
-		for (int i = 0; i < sizeof(Deck) / sizeof(Card); i++){
-			if (CheckCollisionPointRec(GetMousePosition(), (Rectangle) {Deck[i].position.x, Deck[i].position.y, 88, 124})) {
-				if (Deck[i].show){
-					Selected = &Deck[i];
-					break;
-				}
-			}
-			else {
-				if (!MouseHold)
-					Selected = nullptr;
-			}
-		}
-
-		if (IsMouseButtonDown(MOUSE_LEFT_BUTTON) && Selected) {
-			if (!MouseHold){
-				MouseOffset = Vector2Subtract(Selected->position, GetMousePosition());
-				MouseHold = true;
-			} 
-			Selected->position = Vector2Add(GetMousePosition(), MouseOffset);
-		}
-		
-		if (IsMouseButtonReleased(MOUSE_LEFT_BUTTON) && Selected) {
-			MouseHold = false;
-		}
 
 		BeginDrawing();
 
 		ClearBackground((Color) {51, 87, 171, 255});
 
-		for (int i = 0; i < sizeof(Deck) / sizeof(Card); i++){
+		for (int i = 0; i < DeckSize; i++){
 			DrawCard(SpadesAtlas, Deck[i]);
-			if (Selected){
-				if (Vector2Equals(Selected->position, Deck[i].position))
-					DrawCardBorder(SpadesAtlas, *Selected);
-			}
+			// if (Selected){
+			// 	if (Vector2Equals(Selected->position, Deck[i].position))
+			// 		DrawCardBorder(SpadesAtlas, *Selected);
+			// }
 			
 		}
 
 
 		DebugDraw(
-			LINE("%.0f\t%.0f", MousePosition.x, MousePosition.y),
+			// LINE("%.0f\t%.0f", MousePosition.x, MousePosition.y),
 			LINE("%.0f\t%.0f", GetMousePosition().x, GetMousePosition().y)
 		);
 
@@ -81,6 +74,24 @@ int main(int argc, char** argv) {
 	UnloadTexture(SpadesAtlas);
 
 	CloseWindow();
+
+	for (int i = 0; i < PileSize; i++) {
+		Pile* current = Piles[i];
+		while (current != NULL) {
+			Pile* next = current->next;
+			free(current);
+			current = next;
+		}
+		Piles[i] = nullptr;
+	}
+
+	Pile* current = Stock;
+	while (current != NULL) {
+		Pile* next = current->next;
+		free(current);
+		current = next;
+	}
+	Stock = NULL;
 
 
 	return 0;
