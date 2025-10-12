@@ -16,6 +16,18 @@ int main(int argc, char** argv) {
 	Texture2D SpadesAtlas = {};
 	LoadTextureCard(&SpadesAtlas, "res/Poker/Top-Down/Cards/Spades-88x124.png");
 
+	enum CursorTypes { POINT, OPEN, CLOSE };
+
+	Texture2D CursorTextures[3] = {
+		LoadTexture("res/kenney_cursor-pack/PNG/Outline/Default/hand_thin_point.png"),
+		LoadTexture("res/kenney_cursor-pack/PNG/Outline/Default/hand_thin_open.png"),
+		LoadTexture("res/kenney_cursor-pack/PNG/Outline/Default/hand_thin_closed.png")
+	};
+
+	const Texture2D *Cursor;
+
+	HideCursor();
+
 	constexpr int DeckSize = 52;
 	Card Deck[DeckSize] = {};
 	for (int i = 0; i < DeckSize; i++) {
@@ -24,7 +36,7 @@ int main(int argc, char** argv) {
 
 	static Card *Selected = nullptr;
 	bool Holding = false;
-	Pile TempPile = {nullptr, nullptr, nullptr};
+	Pile TempPile;
 
 	constexpr int PileSize = 7;
 	Pile* Piles[PileSize] = {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr};
@@ -59,16 +71,30 @@ int main(int argc, char** argv) {
 
 		// checar solo en la pile en la que este el mouse, ver con ubicacion
 		if (!Holding)
-			for (int i = 0; i < DeckSize; i++) {
-				if (!Deck[i].show)
-					continue;
+			for (int pile = 0; pile < PileSize; pile++) {
+				TempPile = *Piles[pile];
+				while (TempPile.next != NULL)
+					TempPile = *TempPile.next;
 
-				const Rectangle CardRect = {Deck[i].position.x, Deck[i].position.y, CARD_WIDTH, CARD_HEIGHT};
-				if (CheckCollisionPointRec(MousePosition, CardRect)) {
-					Selected = &Deck[i];
-					break;
+				while (TempPile.card != NULL) {
+					if (!TempPile.card->show)
+						continue;
+
+					const Rectangle CardRect = {
+						TempPile.card->position.x, TempPile.card->position.y, CARD_WIDTH, CARD_HEIGHT
+					};
+					if (CheckCollisionPointRec(MousePosition, CardRect)) {
+						Selected = TempPile.card;
+						pile = PileSize;
+						break;
+					}
+					Selected = nullptr;
+
+					if (TempPile.prev != NULL)
+						TempPile = *TempPile.prev;
+					else
+						break;
 				}
-				Selected = nullptr;
 			}
 
 		if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && Selected) {
@@ -81,10 +107,18 @@ int main(int argc, char** argv) {
 			MouseOffset = Selected->position;
 		}
 
-		// maybe Release and && Selected
 		if (IsMouseButtonUp(MOUSE_LEFT_BUTTON)) {
 			Holding = false;
 		}
+
+		if (Selected) {
+			Cursor = &CursorTextures[OPEN];
+			if (Holding)
+				Cursor = &CursorTextures[CLOSE];
+		}
+		else
+			Cursor = &CursorTextures[POINT];
+
 
 
 		BeginDrawing();
@@ -108,7 +142,6 @@ int main(int argc, char** argv) {
 
 			// looping through all the cards
 			while (TempPile.card != NULL) {
-
 				// checking if a card is holding, then don't draw it
 				if (Holding)
 					// check if the selected card is the held one
@@ -134,8 +167,8 @@ int main(int argc, char** argv) {
 					TempPile = *TempPile.next;
 				else
 					break;
-
 			}
+
 		}
 
 		// if there's a held card, then draw it over everything else
@@ -143,6 +176,8 @@ int main(int argc, char** argv) {
 			DrawCard(SpadesAtlas, *Selected);
 			DrawCardBorder(SpadesAtlas, *Selected);
 		}
+
+		DrawTexture(*Cursor, (int) MousePosition.x - Cursor->width/4, (int) MousePosition.y - Cursor->height/4, WHITE);
 
 
 		DebugDraw(
@@ -156,6 +191,9 @@ int main(int argc, char** argv) {
 	}
 
 	UnloadTexture(SpadesAtlas);
+
+	for (int i = 0; i < 3; i++)
+		UnloadTexture(CursorTextures[i]);
 
 	CloseWindow();
 
