@@ -29,14 +29,24 @@ void RemoveCard(Pile **head, Pile *card) {
     if (*head == NULL || card == NULL)
         return;
 
-    if (card == *head)
+    if (card == *head && card->next == NULL) {
+        free(card);
+        *head = NULL;
+        return;
+    }
+
+    if (card == *head) {
         *head = card->next;
+    }
+
+    if (card->prev != NULL && card->prev->next != NULL)
+        card->prev->next = card->next;
 
     if (card->next != NULL)
         card->next->prev = card->prev;
 
-    if (card->prev != NULL)
-        card->prev->next = card->next;
+    if ((*head)->prev == card)
+        (*head)->prev = card->prev ? card->prev : *head;
 
     free(card);
 }

@@ -31,7 +31,7 @@ int main(int argc, char** argv) {
 	constexpr int DeckSize = 52;
 	Card Deck[DeckSize] = {};
 	for (int i = 0; i < DeckSize; i++) {
-		Deck[i] = (Card) {i % 13, true, 0, {0, 0}};
+		Deck[i] = (Card) {i % 13, false, 0, {0, 0}};
 	}
 
 	static Card *Selected = nullptr;
@@ -52,7 +52,7 @@ int main(int argc, char** argv) {
 		}
 	}
 
-	constexpr int StockSize = 24;
+	int StockSize = 24;
 	Pile* Stock = {};
 	for (int pileAmount = 0; pileAmount < StockSize; pileAmount++) {
 		Deck[CardIndex].position = (Vector2) {WIDTH - 200, HEIGHT - 180 - (float) pileAmount * 2};
@@ -75,8 +75,13 @@ int main(int argc, char** argv) {
 				TempPile = *Piles[pile]->prev;
 
 				 do {
-					if (!TempPile.card->show)
-						continue;
+					if (!TempPile.card->show) {
+						if (TempPile.prev != NULL) {
+							TempPile = *TempPile.prev;
+								continue;
+							}
+						break;
+					}
 
 					const Rectangle CardRect = {
 						TempPile.card->position.x, TempPile.card->position.y, CARD_WIDTH, CARD_HEIGHT
@@ -93,6 +98,21 @@ int main(int argc, char** argv) {
 					else
 						break;
 				} while (!Vector2Equals(TempPile.card->position,Piles[pile]->prev->card->position));
+			}
+
+		if (StockSize)
+			if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && CheckCollisionPointRec(MousePosition, (Rectangle)
+				{Stock->card->position.x, Stock->card->position.y, CARD_WIDTH, CARD_HEIGHT})) {
+				for (int pile = 0; pile < PileSize; pile++) {
+					Card *TempCard = Stock->card;
+					TempCard->position.x = Piles[pile]->prev->card->position.x;
+					TempCard->position.y = Piles[pile]->prev->card->position.y + 30;
+					TempCard->show = true;
+					RemoveCard(&Stock, Stock);
+					AppendCard(&Piles[pile], TempCard);
+					StockSize--;
+					if (StockSize == 0) break;
+				}
 			}
 
 		if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && Selected) {
@@ -123,13 +143,15 @@ int main(int argc, char** argv) {
 
 		ClearBackground((Color) {51, 87, 171, 255});
 
-		TempPile = *Stock;
-		while (TempPile.card != NULL) {
-			DrawCard(SpadesAtlas, *TempPile.card);
-			if (TempPile.next != NULL)
-				TempPile = *TempPile.next;
-			else
-				break;
+		if (StockSize) {
+			TempPile = *Stock;
+			while (TempPile.card != NULL) {
+				DrawCard(SpadesAtlas, *TempPile.card);
+				if (TempPile.next != NULL)
+					TempPile = *TempPile.next;
+				else
+					break;
+			}
 		}
 
 		// draw cards per pile
