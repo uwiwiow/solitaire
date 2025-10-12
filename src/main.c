@@ -18,7 +18,7 @@ int main(int argc, char** argv) {
 
 	enum CursorTypes { POINT, OPEN, CLOSE };
 
-	Texture2D CursorTextures[3] = {
+	const Texture2D CursorTextures[3] = {
 		LoadTexture("res/kenney_cursor-pack/PNG/Outline/Default/hand_thin_point.png"),
 		LoadTexture("res/kenney_cursor-pack/PNG/Outline/Default/hand_thin_open.png"),
 		LoadTexture("res/kenney_cursor-pack/PNG/Outline/Default/hand_thin_closed.png")
@@ -45,7 +45,7 @@ int main(int argc, char** argv) {
 		for (int pileAmount = 0; pileAmount <= pile; pileAmount++) {
 			if (pileAmount == pile)
 				Deck[CardIndex].show = true;
-			Deck[CardIndex].position = (Vector2) { 80 + (float) pile * 160, 50 + (float) pileAmount * 25};
+			Deck[CardIndex].position = (Vector2) { 80 + (float) pile * 160, 50 + (float) pileAmount * 30};
 			Deck[CardIndex].zindex = (char) pileAmount;
 			AppendCard(&Piles[pile], &Deck[CardIndex]);
 			CardIndex++;
@@ -72,11 +72,9 @@ int main(int argc, char** argv) {
 		// checar solo en la pile en la que este el mouse, ver con ubicacion
 		if (!Holding)
 			for (int pile = 0; pile < PileSize; pile++) {
-				TempPile = *Piles[pile];
-				while (TempPile.next != NULL)
-					TempPile = *TempPile.next;
+				TempPile = *Piles[pile]->prev;
 
-				while (TempPile.card != NULL) {
+				 do {
 					if (!TempPile.card->show)
 						continue;
 
@@ -94,7 +92,7 @@ int main(int argc, char** argv) {
 						TempPile = *TempPile.prev;
 					else
 						break;
-				}
+				} while (!Vector2Equals(TempPile.card->position,Piles[pile]->prev->card->position));
 			}
 
 		if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && Selected) {

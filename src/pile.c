@@ -13,6 +13,7 @@ void AppendCard(Pile **head, Card *card) {
     Pile *pile = NewPile(card);
     if (*head == NULL) {
         *head = pile;
+        pile->prev = pile;
         return;
     }
     Pile *temp = *head;
@@ -21,7 +22,7 @@ void AppendCard(Pile **head, Card *card) {
 
     temp->next = pile;
     pile->prev = temp;
-
+    (*head)->prev = pile;
 }
 
 void RemoveCard(Pile **head, Pile *card) {
