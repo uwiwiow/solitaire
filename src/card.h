@@ -10,7 +10,6 @@ enum CardNumber { A = 0, J = 10, Q, K, BACK, BORDER};
 typedef struct Card {
 	int number;
 	bool show;
-	int8_t zindex;
 	Vector2 position;
 } Card;
 

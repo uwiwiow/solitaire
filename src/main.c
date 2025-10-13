@@ -31,12 +31,13 @@ int main(int argc, char** argv) {
 	constexpr int DeckSize = 52;
 	Card Deck[DeckSize] = {};
 	for (int i = 0; i < DeckSize; i++) {
-		Deck[i] = (Card) {i % 13, false, 0, {0, 0}};
+		Deck[i] = (Card) {i % 13, false, {0, 0}};
 	}
 
-	static Card *Selected = nullptr;
+	static Card *SelectedCard = nullptr;
+	static Pile *SelectedPile = nullptr;
 	bool Holding = false;
-	Pile TempPile;
+	Pile *TempPile = nullptr;
 
 	constexpr int PileSize = 7;
 	Pile* Piles[PileSize] = {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr};
@@ -46,7 +47,6 @@ int main(int argc, char** argv) {
 			if (pileAmount == pile)
 				Deck[CardIndex].show = true;
 			Deck[CardIndex].position = (Vector2) { 80 + (float) pile * 160, 50 + (float) pileAmount * 30};
-			Deck[CardIndex].zindex = (char) pileAmount;
 			AppendCard(&Piles[pile], &Deck[CardIndex]);
 			CardIndex++;
 		}
@@ -72,32 +72,34 @@ int main(int argc, char** argv) {
 		// checar solo en la pile en la que este el mouse, ver con ubicacion
 		if (!Holding)
 			for (int pile = 0; pile < PileSize; pile++) {
-				TempPile = *Piles[pile]->prev;
+				TempPile = Piles[pile]->prev;
 
 				 do {
-					if (!TempPile.card->show) {
-						if (TempPile.prev != NULL) {
-							TempPile = *TempPile.prev;
+					if (!TempPile->card->show) {
+						if (TempPile->prev != NULL) {
+							TempPile = TempPile->prev;
 								continue;
 							}
 						break;
 					}
 
 					const Rectangle CardRect = {
-						TempPile.card->position.x, TempPile.card->position.y, CARD_WIDTH, CARD_HEIGHT
+						TempPile->card->position.x, TempPile->card->position.y, CARD_WIDTH, CARD_HEIGHT
 					};
 					if (CheckCollisionPointRec(MousePosition, CardRect)) {
-						Selected = TempPile.card;
+						SelectedCard = TempPile->card;
+						SelectedPile = TempPile;
 						pile = PileSize;
 						break;
 					}
-					Selected = nullptr;
+					SelectedCard = nullptr;
+				 	SelectedPile = nullptr;
 
-					if (TempPile.prev != NULL)
-						TempPile = *TempPile.prev;
+					if (TempPile->prev != NULL)
+						TempPile = TempPile->prev;
 					else
 						break;
-				} while (!Vector2Equals(TempPile.card->position,Piles[pile]->prev->card->position));
+				} while (!Vector2Equals(TempPile->card->position,Piles[pile]->prev->card->position));
 			}
 
 		if (StockSize)
@@ -115,21 +117,29 @@ int main(int argc, char** argv) {
 				}
 			}
 
-		if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && Selected) {
+		if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && SelectedCard) {
 			Holding = true;
-			CardOffset = Vector2Subtract(MousePosition, Selected->position);
+			CardOffset = Vector2Subtract(MousePosition, SelectedCard->position);
 		}
 
 		if (IsMouseButtonDown(MOUSE_LEFT_BUTTON) && Holding) {
-			Selected->position = Vector2Add(Vector2Subtract(Selected->position, CardOffset), Vector2Subtract(MousePosition, MouseOffset));
-			MouseOffset = Selected->position;
+			TempPile = SelectedPile;
+			while (TempPile->card != NULL) {
+				SelectedCard->position = Vector2Add(Vector2Subtract(SelectedCard->position, CardOffset), Vector2Subtract(MousePosition, MouseOffset));
+				if (TempPile->next != NULL)
+					TempPile = TempPile->next;
+				else
+					break;
+			}
+
+			MouseOffset = SelectedCard->position;
 		}
 
 		if (IsMouseButtonUp(MOUSE_LEFT_BUTTON)) {
 			Holding = false;
 		}
 
-		if (Selected) {
+		if (SelectedCard) {
 			Cursor = &CursorTextures[OPEN];
 			if (Holding)
 				Cursor = &CursorTextures[CLOSE];
@@ -144,11 +154,11 @@ int main(int argc, char** argv) {
 		ClearBackground((Color) {51, 87, 171, 255});
 
 		if (StockSize) {
-			TempPile = *Stock;
-			while (TempPile.card != NULL) {
-				DrawCard(SpadesAtlas, *TempPile.card);
-				if (TempPile.next != NULL)
-					TempPile = *TempPile.next;
+			TempPile = Stock;
+			while (TempPile->card != NULL) {
+				DrawCard(SpadesAtlas, *TempPile->card);
+				if (TempPile->next != NULL)
+					TempPile = TempPile->next;
 				else
 					break;
 			}
@@ -158,33 +168,33 @@ int main(int argc, char** argv) {
 		for (int pile = 0; pile < PileSize; pile++) {
 
 			// temp pile for getting every card at the loop
-			TempPile = *Piles[pile];
+			TempPile = Piles[pile];
 
 			// looping through all the cards
-			while (TempPile.card != NULL) {
+			while (TempPile->card != NULL) {
 				// checking if a card is holding, then don't draw it
 				if (Holding)
 					// check if the selected card is the held one
-					if (Vector2Equals(TempPile.card->position, Selected->position)) {
+					if (Vector2Equals(TempPile->card->position, SelectedCard->position)) {
 						// go next card or if there aren't more cards, then break
-						if (TempPile.next != NULL) {
-							TempPile = *TempPile.next;
+						if (TempPile->next != NULL) {
+							TempPile = TempPile->next;
 							continue;
 						}
 							break;
 					}
 
-				DrawCard(SpadesAtlas, *TempPile.card);
+				DrawCard(SpadesAtlas, *TempPile->card);
 
 				// draw border if the card is selected
-				if (Selected)
+				if (SelectedCard)
 					// check if the selected card is the selected one
-					if (Vector2Equals(Selected->position, TempPile.card->position))
-						DrawCardBorder(SpadesAtlas, *Selected);
+					if (Vector2Equals(SelectedCard->position, TempPile->card->position))
+						DrawCardBorder(SpadesAtlas, *SelectedCard);
 
 				// go next card or if there aren't more cards, then break
-				if (TempPile.next != NULL)
-					TempPile = *TempPile.next;
+				if (TempPile->next != NULL)
+					TempPile = TempPile->next;
 				else
 					break;
 			}
@@ -193,8 +203,8 @@ int main(int argc, char** argv) {
 
 		// if there's a held card, then draw it over everything else
 		if (Holding) {
-			DrawCard(SpadesAtlas, *Selected);
-			DrawCardBorder(SpadesAtlas, *Selected);
+			DrawCard(SpadesAtlas, *SelectedCard);
+			DrawCardBorder(SpadesAtlas, *SelectedCard);
 		}
 
 		DrawTexture(*Cursor, (int) MousePosition.x - Cursor->width/4, (int) MousePosition.y - Cursor->height/4, WHITE);
