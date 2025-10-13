@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include "card.h"
 #include "pile.h"
+#include "pool.h"
 #include "debug.h"
 
 constexpr int WIDTH = 1240;
@@ -10,24 +11,31 @@ constexpr int HEIGHT = 720;
 
 int main(int argc, char** argv) {
 
+	// init
 	SetTraceLogLevel(LOG_WARNING);
 	InitWindow(WIDTH, HEIGHT, "Solitaire");
 
+
+
+	// textures
 	Texture2D SpadesAtlas = {};
 	LoadTextureCard(&SpadesAtlas, "res/Poker/Top-Down/Cards/Spades-88x124.png");
-
-	enum CursorTypes { POINT, OPEN, CLOSE };
-
 	const Texture2D CursorTextures[3] = {
 		LoadTexture("res/kenney_cursor-pack/PNG/Outline/Default/hand_thin_point.png"),
 		LoadTexture("res/kenney_cursor-pack/PNG/Outline/Default/hand_thin_open.png"),
 		LoadTexture("res/kenney_cursor-pack/PNG/Outline/Default/hand_thin_closed.png")
 	};
 
-	const Texture2D *Cursor;
 
+
+	// cursor
+	enum CursorTypes { POINT, OPEN, CLOSE };
+	const Texture2D *Cursor;
 	HideCursor();
 
+
+
+	// deck
 	constexpr int DeckSize = 52;
 	Card Deck[DeckSize] = {};
 	for (int i = 0; i < DeckSize; i++) {
@@ -35,8 +43,12 @@ int main(int argc, char** argv) {
 	}
 
 	static Card *SelectedCard = nullptr;
-	static Pile *SelectedPile = nullptr;
 	bool Holding = false;
+
+
+
+	// pile
+	static Pile *SelectedPile = nullptr;
 	Pile *TempPile = nullptr;
 
 	constexpr int PileSize = 7;
@@ -52,6 +64,9 @@ int main(int argc, char** argv) {
 		}
 	}
 
+
+
+	// stock
 	int StockSize = 24;
 	Pile* Stock = {};
 	for (int pileAmount = 0; pileAmount < StockSize; pileAmount++) {
@@ -60,8 +75,13 @@ int main(int argc, char** argv) {
 		CardIndex++;
 	}
 
+
+
+	// card movement
 	Vector2 MouseOffset = {0, 0};
 	Vector2 CardOffset = {0, 0};
+
+	// TODO hacer que las manos se queden donde deben de estar
 
 	while(!WindowShouldClose()) {
 
@@ -69,9 +89,15 @@ int main(int argc, char** argv) {
 
 		const Vector2 MousePosition = GetMousePosition();
 
+
+
+		// selected card
 		// checar solo en la pile en la que este el mouse, ver con ubicacion
 		if (!Holding)
 			for (int pile = 0; pile < PileSize; pile++) {
+
+				if (Piles[pile] == NULL) continue;
+
 				TempPile = Piles[pile]->prev;
 
 				 do {
@@ -102,9 +128,12 @@ int main(int argc, char** argv) {
 				} while (!Vector2Equals(TempPile->card->position,Piles[pile]->prev->card->position));
 			}
 
+
+
+		// stock
 		if (StockSize)
 			if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && CheckCollisionPointRec(MousePosition, (Rectangle)
-				{Stock->card->position.x, Stock->card->position.y, CARD_WIDTH, CARD_HEIGHT})) {
+				{Stock->prev->card->position.x, Stock->prev->card->position.y, CARD_WIDTH, CARD_HEIGHT})) {
 				for (int pile = 0; pile < PileSize; pile++) {
 					Card *TempCard = Stock->card;
 					TempCard->position.x = Piles[pile]->prev->card->position.x;
@@ -117,15 +146,20 @@ int main(int argc, char** argv) {
 				}
 			}
 
+
+
+		// card movement
+		//		press
 		if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && SelectedCard) {
 			Holding = true;
 			CardOffset = Vector2Subtract(MousePosition, SelectedCard->position);
 		}
 
+		//		hold
 		if (IsMouseButtonDown(MOUSE_LEFT_BUTTON) && Holding) {
 			TempPile = SelectedPile;
 			while (TempPile->card != NULL) {
-				SelectedCard->position = Vector2Add(Vector2Subtract(SelectedCard->position, CardOffset), Vector2Subtract(MousePosition, MouseOffset));
+				TempPile->card->position = Vector2Add(Vector2Subtract(TempPile->card->position, CardOffset), Vector2Subtract(MousePosition, MouseOffset));
 				if (TempPile->next != NULL)
 					TempPile = TempPile->next;
 				else
@@ -135,10 +169,14 @@ int main(int argc, char** argv) {
 			MouseOffset = SelectedCard->position;
 		}
 
+		//		release
 		if (IsMouseButtonUp(MOUSE_LEFT_BUTTON)) {
 			Holding = false;
 		}
 
+
+
+		// mouse
 		if (SelectedCard) {
 			Cursor = &CursorTextures[OPEN];
 			if (Holding)
@@ -149,10 +187,13 @@ int main(int argc, char** argv) {
 
 
 
+		// draw
 		BeginDrawing();
 
 		ClearBackground((Color) {51, 87, 171, 255});
 
+
+		// stock
 		if (StockSize) {
 			TempPile = Stock;
 			while (TempPile->card != NULL) {
@@ -164,25 +205,20 @@ int main(int argc, char** argv) {
 			}
 		}
 
+
+		// deck
 		// draw cards per pile
 		for (int pile = 0; pile < PileSize; pile++) {
+
+			// TODO draw the entire selection over everything
+
+			if (Piles[pile] == NULL) continue;
 
 			// temp pile for getting every card at the loop
 			TempPile = Piles[pile];
 
 			// looping through all the cards
 			while (TempPile->card != NULL) {
-				// checking if a card is holding, then don't draw it
-				if (Holding)
-					// check if the selected card is the held one
-					if (Vector2Equals(TempPile->card->position, SelectedCard->position)) {
-						// go next card or if there aren't more cards, then break
-						if (TempPile->next != NULL) {
-							TempPile = TempPile->next;
-							continue;
-						}
-							break;
-					}
 
 				DrawCard(SpadesAtlas, *TempPile->card);
 
@@ -201,12 +237,8 @@ int main(int argc, char** argv) {
 
 		}
 
-		// if there's a held card, then draw it over everything else
-		if (Holding) {
-			DrawCard(SpadesAtlas, *SelectedCard);
-			DrawCardBorder(SpadesAtlas, *SelectedCard);
-		}
 
+		// mouse
 		DrawTexture(*Cursor, (int) MousePosition.x - Cursor->width/4, (int) MousePosition.y - Cursor->height/4, WHITE);
 
 
@@ -220,13 +252,18 @@ int main(int argc, char** argv) {
 
 	}
 
+
+	// unload textures
 	UnloadTexture(SpadesAtlas);
 
 	for (int i = 0; i < 3; i++)
 		UnloadTexture(CursorTextures[i]);
 
+
 	CloseWindow();
 
+
+	// free piles and stock
 	for (int i = 0; i < PileSize; i++) {
 		Pile* current = Piles[i];
 		while (current != NULL) {

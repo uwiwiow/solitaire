@@ -2,8 +2,6 @@
 #define CARD_H
 
 #include <raylib.h>
-#include <stdint.h>
-
 
 enum CardNumber { A = 0, J = 10, Q, K, BACK, BORDER};
 
