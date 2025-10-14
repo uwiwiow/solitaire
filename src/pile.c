@@ -9,7 +9,7 @@ Pile* NewPile(Card *card) {
     return pile;
 }
 
-void AppendCard(Pile **head, Card *card) {
+void AppendCardToPile(Pile **head, Card *card) {
     Pile *pile = NewPile(card);
     if (*head == NULL) {
         *head = pile;
@@ -25,7 +25,7 @@ void AppendCard(Pile **head, Card *card) {
     (*head)->prev = pile;
 }
 
-void RemoveCard(Pile **head, Pile *card) {
+void RemovePile(Pile **head, Pile *card) {
     if (*head == NULL || card == NULL)
         return;
 

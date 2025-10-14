@@ -9,8 +9,8 @@ typedef struct Pile {
 	struct Pile *next;
 } Pile;
 
-void AppendCard(Pile **head, Card *card);
+void AppendCardToPile(Pile **head, Card *card);
 
-void RemoveCard(Pile **head, Pile *card);
+void RemovePile(Pile **head, Pile *card);
 
 #endif

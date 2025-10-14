@@ -42,14 +42,14 @@ int main(int argc, char** argv) {
 		Deck[i] = (Card) {i % 13, false, {0, 0}};
 	}
 
-	static Card *SelectedCard = nullptr;
+	const Card *SelectedCard = nullptr;
 	bool Holding = false;
 
 
 
 	// pile
-	static Pile *SelectedPile = nullptr;
-	Pile *TempPile = nullptr;
+	const Pile *SelectedPile = nullptr;
+	const Pile *TempPile;
 
 	constexpr int PileSize = 7;
 	Pile* Piles[PileSize] = {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr};
@@ -58,8 +58,7 @@ int main(int argc, char** argv) {
 		for (int pileAmount = 0; pileAmount <= pile; pileAmount++) {
 			if (pileAmount == pile)
 				Deck[CardIndex].show = true;
-			Deck[CardIndex].position = (Vector2) { 80 + (float) pile * 160, 50 + (float) pileAmount * 30};
-			AppendCard(&Piles[pile], &Deck[CardIndex]);
+			AppendCardToPile(&Piles[pile], &Deck[CardIndex]);
 			CardIndex++;
 		}
 	}
@@ -71,8 +70,18 @@ int main(int argc, char** argv) {
 	Pile* Stock = {};
 	for (int pileAmount = 0; pileAmount < StockSize; pileAmount++) {
 		Deck[CardIndex].position = (Vector2) {WIDTH - 200, HEIGHT - 180 - (float) pileAmount * 2};
-		AppendCard(&Stock, &Deck[CardIndex]);
+		AppendCardToPile(&Stock, &Deck[CardIndex]);
 		CardIndex++;
+	}
+
+
+
+	// pool
+	constexpr int PoolSize = PileSize;
+	Pool Pools[PoolSize] = {};
+	for (int pool = 0; pool < PoolSize; pool++) {
+		Pools[pool] = (Pool) {.position = (Vector2) {PADDING_X + (float) pool * OFFSET_X, PADDING_Y}, .gap = (int) OFFSET_Y, .pile = Piles[pool]};
+		SetPositionCardFromPool(&Pools[pool]);
 	}
 
 
@@ -120,6 +129,7 @@ int main(int argc, char** argv) {
 					}
 					SelectedCard = nullptr;
 				 	SelectedPile = nullptr;
+					Holding = false;
 
 					if (TempPile->prev != NULL)
 						TempPile = TempPile->prev;
@@ -139,8 +149,8 @@ int main(int argc, char** argv) {
 					TempCard->position.x = Piles[pile]->prev->card->position.x;
 					TempCard->position.y = Piles[pile]->prev->card->position.y + 30;
 					TempCard->show = true;
-					RemoveCard(&Stock, Stock);
-					AppendCard(&Piles[pile], TempCard);
+					RemovePile(&Stock, Stock);
+					AppendCardToPile(&Piles[pile], TempCard);
 					StockSize--;
 					if (StockSize == 0) break;
 				}
@@ -208,14 +218,14 @@ int main(int argc, char** argv) {
 
 		// deck
 		// draw cards per pile
-		for (int pile = 0; pile < PileSize; pile++) {
+		for (int pool = 0; pool < PoolSize; pool++) {
 
 			// TODO draw the entire selection over everything
 
-			if (Piles[pile] == NULL) continue;
+			if (Pools[pool].pile == NULL) continue;
 
 			// temp pile for getting every card at the loop
-			TempPile = Piles[pile];
+			TempPile = Pools[pool].pile;
 
 			// looping through all the cards
 			while (TempPile->card != NULL) {
