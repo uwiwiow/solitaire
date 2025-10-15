@@ -77,6 +77,8 @@ int main(int argc, char** argv) {
 
 
 	// pool
+	int SelectedPool = -1;
+
 	constexpr int PoolSize = PileSize;
 	Pool Pools[PoolSize] = {};
 	for (int pool = 0; pool < PoolSize; pool++) {
@@ -90,7 +92,6 @@ int main(int argc, char** argv) {
 	Vector2 MouseOffset = {0, 0};
 	Vector2 CardOffset = {0, 0};
 
-	// TODO hacer que las manos se queden donde deben de estar
 
 	while(!WindowShouldClose()) {
 
@@ -101,7 +102,7 @@ int main(int argc, char** argv) {
 
 
 		// selected card
-		// checar solo en la pile en la que este el mouse, ver con ubicacion
+		// todo checar solo en la pile en la que este el mouse, ver con ubicacion
 		if (!Holding)
 			for (int pile = 0; pile < PileSize; pile++) {
 
@@ -124,11 +125,13 @@ int main(int argc, char** argv) {
 					if (CheckCollisionPointRec(MousePosition, CardRect)) {
 						SelectedCard = TempPile->card;
 						SelectedPile = TempPile;
+						SelectedPool = pile;
 						pile = PileSize;
 						break;
 					}
 					SelectedCard = nullptr;
 				 	SelectedPile = nullptr;
+				 	SelectedPool = -1;
 					Holding = false;
 
 					if (TempPile->prev != NULL)
@@ -181,6 +184,8 @@ int main(int argc, char** argv) {
 
 		//		release
 		if (IsMouseButtonUp(MOUSE_LEFT_BUTTON)) {
+			if (SelectedPool != -1)
+				SetPositionCardFromPool(&Pools[SelectedPool]);
 			Holding = false;
 		}
 
@@ -220,8 +225,6 @@ int main(int argc, char** argv) {
 		// draw cards per pile
 		for (int pool = 0; pool < PoolSize; pool++) {
 
-			// TODO draw the entire selection over everything
-
 			if (Pools[pool].pile == NULL) continue;
 
 			// temp pile for getting every card at the loop
@@ -229,6 +232,9 @@ int main(int argc, char** argv) {
 
 			// looping through all the cards
 			while (TempPile->card != NULL) {
+
+				if (TempPile->card == SelectedCard && Holding)
+					break;
 
 				DrawCard(SpadesAtlas, *TempPile->card);
 
@@ -245,6 +251,24 @@ int main(int argc, char** argv) {
 					break;
 			}
 
+		}
+
+
+		// draw everything that's being held
+		if (Holding) {
+			TempPile = SelectedPile;
+
+			// looping through all the cards
+			while (TempPile->card != NULL) {
+
+				DrawCard(SpadesAtlas, *TempPile->card);
+
+				// go next card or if there aren't more cards, then break
+				if (TempPile->next != NULL)
+					TempPile = TempPile->next;
+				else
+					break;
+			}
 		}
 
 
