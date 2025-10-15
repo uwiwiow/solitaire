@@ -1,6 +1,7 @@
 #include <raylib.h>
 #include <raymath.h>
 #include <stdlib.h>
+#include <time.h>
 #include "card.h"
 #include "pile.h"
 #include "pool.h"
@@ -10,7 +11,6 @@ constexpr int WIDTH = 1240;
 constexpr int HEIGHT = 720;
 
 
-// todo random cards, win condition
 
 int main(int argc, char** argv) {
 
@@ -47,6 +47,15 @@ int main(int argc, char** argv) {
 
 	const Card *SelectedCard = nullptr;
 	bool Holding = false;
+
+	srand(time(nullptr));
+
+	for (int i = DeckSize - 1; i > 0; i--) {
+		int j = rand() % (i + 1);
+		Card temp = Deck[i];
+		Deck[i] = Deck[j];
+		Deck[j] = temp;
+	}
 
 
 
@@ -210,6 +219,7 @@ int main(int argc, char** argv) {
 
 					if (CheckCollisionPointRec((Vector2) {SelectedCard->position.x + (float) CARD_WIDTH / 2, SelectedCard->position.y}, TempRect)) {
 						MoveCardsToPile(&Pools[SelectedPool], SelectedCard, &Pools[pool]);
+						// todo win condition
 						SetPositionCardFromPool(&Pools[pool]);
 					}
 				}
