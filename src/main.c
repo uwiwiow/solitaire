@@ -9,6 +9,9 @@
 constexpr int WIDTH = 1240;
 constexpr int HEIGHT = 720;
 
+
+// todo random cards, win condition
+
 int main(int argc, char** argv) {
 
 	// init
@@ -100,7 +103,6 @@ int main(int argc, char** argv) {
 
 
 		// selected card
-		// todo checar solo en la pile en la que este el mouse, ver con ubicacion
 		if (!Holding)
 			for (int pile = 0; pile < PileSize; pile++) {
 
@@ -162,6 +164,18 @@ int main(int argc, char** argv) {
 		//		press
 		if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && SelectedCard) {
 			Holding = true;
+
+
+			TempPile = SelectedPile;
+			while (TempPile->card != NULL) {
+				if (TempPile->next != NULL) {
+					if (TempPile->card->number -1 != TempPile->next->card->number) Holding = false;
+					TempPile = TempPile->next;
+				}
+				else
+					break;
+			}
+
 			CardOffset = Vector2Subtract(MousePosition, SelectedCard->position);
 		}
 
@@ -184,6 +198,12 @@ int main(int argc, char** argv) {
 			if (SelectedPool != -1 && Holding) {
 				for (int pool = 0; pool < PoolSize; pool++) {
 					if (pool == SelectedPool) continue;
+
+					if (*Pools[pool].pile != nullptr) {
+						if ((*Pools[pool].pile)->prev->card->number -1 != SelectedCard->number) continue;
+					} else {
+						if (SelectedCard->number != K) continue;
+					}
 
 					Rectangle TempRect = {*Pools[pool].pile == nullptr? Pools[pool].position.x : (*Pools[pool].pile)->prev->card->position.x,
 	*Pools[pool].pile == nullptr? Pools[pool].position.y : (*Pools[pool].pile)->prev->card->position.y, CARD_WIDTH, CARD_HEIGHT};
