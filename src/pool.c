@@ -26,7 +26,7 @@ void SetPositionCardFromPool(const Pool* Pool) {
 
 }
 
-void MoveCardsToPile(Pool *selectedPool, Card *selectedCard, Pool *newPool) {
+void MoveCardsToPile(const Pool *selectedPool, const  Card *selectedCard, const  Pool *newPool) {
     if (selectedPool == nullptr || selectedCard == nullptr || newPool == nullptr)
         return;
 
@@ -36,6 +36,8 @@ void MoveCardsToPile(Pool *selectedPool, Card *selectedCard, Pool *newPool) {
         if (pile->card == selectedCard) break;
         pile = pile->next;
     }
+
+    pile->prev->card->show = true;
 
     bool run = true;
     while (run) {

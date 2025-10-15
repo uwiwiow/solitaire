@@ -42,7 +42,7 @@ int main(int argc, char** argv) {
 		Deck[i] = (Card) {i % 13, false, {0, 0}};
 	}
 
-	Card *SelectedCard = nullptr;
+	const Card *SelectedCard = nullptr;
 	bool Holding = false;
 
 
@@ -146,14 +146,11 @@ int main(int argc, char** argv) {
 				{Stock->prev->card->position.x, Stock->prev->card->position.y, CARD_WIDTH, CARD_HEIGHT})) {
 				for (int pile = 0; pile < PileSize; pile++) {
 
-					if (*Pools[pile].pile == nullptr) continue;
-
 					Card *TempCard = Stock->card;
-					TempCard->position.x = (*Pools[pile].pile)->prev->card->position.x;
-					TempCard->position.y = (*Pools[pile].pile)->prev->card->position.y + 30;
 					TempCard->show = true;
 					RemovePile(&Stock, Stock);
 					AppendCardToPile(Pools[pile].pile, TempCard);
+					SetPositionCardFromPool(&Pools[pile]);
 					StockSize--;
 					if (StockSize == 0) break;
 				}
@@ -186,11 +183,12 @@ int main(int argc, char** argv) {
 		if (IsMouseButtonUp(MOUSE_LEFT_BUTTON)) {
 			if (SelectedPool != -1 && Holding) {
 				for (int pool = 0; pool < PoolSize; pool++) {
-					if (*Pools[pool].pile == nullptr) continue;
 					if (pool == SelectedPool) continue;
-					// todo make unshown cards to be shown
-					// todo check rectangle with Pool.position instead of pile position
-					if (CheckCollisionPointRec((Vector2) {SelectedCard->position.x + (float) CARD_WIDTH / 2, SelectedCard->position.y}, (Rectangle) { (*Pools[pool].pile)->prev->card->position.x, (*Pools[pool].pile)->prev->card->position.y, CARD_WIDTH, CARD_HEIGHT})) {
+
+					Rectangle TempRect = {*Pools[pool].pile == nullptr? Pools[pool].position.x : (*Pools[pool].pile)->prev->card->position.x,
+	*Pools[pool].pile == nullptr? Pools[pool].position.y : (*Pools[pool].pile)->prev->card->position.y, CARD_WIDTH, CARD_HEIGHT};
+
+					if (CheckCollisionPointRec((Vector2) {SelectedCard->position.x + (float) CARD_WIDTH / 2, SelectedCard->position.y}, TempRect)) {
 						MoveCardsToPile(&Pools[SelectedPool], SelectedCard, &Pools[pool]);
 						SetPositionCardFromPool(&Pools[pool]);
 					}

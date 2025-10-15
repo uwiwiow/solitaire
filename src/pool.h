@@ -18,6 +18,6 @@ typedef struct Pool {
 
 void SetPositionCardFromPool(const Pool* Pool);
 
-void MoveCardsToPile(Pool *selectedPool, Card *selectedCard, Pool *newPool);
+void MoveCardsToPile(const Pool *selectedPool, const  Card *selectedCard, const  Pool *newPool);
 
 #endif

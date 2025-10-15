@@ -8,8 +8,8 @@ void LoadTextureCard(Texture2D *CardAtlas, const char* filename) {
 }
 
 Rectangle GetCardRect(const int index) {
-    int x = (index % CARD_ATLAS_COLS) * CARD_WIDTH;
-    int y = (index / CARD_ATLAS_COLS) * CARD_HEIGHT;
+    const int x = (index % CARD_ATLAS_COLS) * CARD_WIDTH;
+    const int y = (index / CARD_ATLAS_COLS) * CARD_HEIGHT;
     return (Rectangle){ (float)x, (float)y, (float)CARD_WIDTH, (float)CARD_HEIGHT };
 }
 
