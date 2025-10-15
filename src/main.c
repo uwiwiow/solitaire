@@ -132,7 +132,6 @@ int main(int argc, char** argv) {
 					SelectedCard = nullptr;
 				 	SelectedPile = nullptr;
 				 	SelectedPool = -1;
-					Holding = false;
 
 					if (TempPile->prev != NULL)
 						TempPile = TempPile->prev;
@@ -184,8 +183,14 @@ int main(int argc, char** argv) {
 
 		//		release
 		if (IsMouseButtonUp(MOUSE_LEFT_BUTTON)) {
-			if (SelectedPool != -1)
-				SetPositionCardFromPool(&Pools[SelectedPool]);
+			if (SelectedPool != -1) {
+				for (int pool = 0; pool < PoolSize; pool++)
+					if (CheckCollisionPointRec((Vector2) {SelectedCard->position.x + (float) CARD_WIDTH / 2, SelectedCard->position.y}, (Rectangle) { Pools[pool].pile->prev->card->position.x, Pools[pool].pile->prev->card->position.y, CARD_WIDTH, CARD_HEIGHT}))
+						// todo add rest of the logic
+						SelectedPile->card->show = true; // remove this
+					else
+						SetPositionCardFromPool(&Pools[SelectedPool]);
+			}
 			Holding = false;
 		}
 
