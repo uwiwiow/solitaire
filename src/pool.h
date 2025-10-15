@@ -13,7 +13,7 @@ constexpr float OFFSET_Y = 30.0f;
 typedef struct Pool {
     int gap;
     Vector2 position;
-    Pile *pile;
+    Pile **pile;
 } Pool;
 
 void SetPositionCardFromPool(const Pool* Pool);

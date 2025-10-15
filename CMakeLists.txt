@@ -3,6 +3,13 @@ project(solitaire)
 
 set(CMAKE_C_STANDARD 23)
 
+set(CMAKE_BUILD_TYPE Debug)
+
+if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
+	add_compile_options(-fsanitize=address -g)
+	add_link_options(-fsanitize=address)
+endif()
+
 file(GLOB solitaire_SRC CONFIGURE_DEPENDS src/*.h src/*.c)
 
 add_executable(solitaire

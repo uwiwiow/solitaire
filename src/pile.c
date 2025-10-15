@@ -31,7 +31,7 @@ void RemovePile(Pile **head, Pile *card) {
 
     if (card == *head && card->next == NULL) {
         free(card);
-        *head = NULL;
+        *head = nullptr;
         return;
     }
 
@@ -49,4 +49,21 @@ void RemovePile(Pile **head, Pile *card) {
         (*head)->prev = card->prev ? card->prev : *head;
 
     free(card);
+}
+
+
+void MoveCardsToPile(Pile **pile, Pile *newPile) {
+    if (!newPile || !pile)
+        return;
+
+    Pile *temp = *pile;
+    while (temp->card != NULL) {
+        Card *card = temp->card;
+        RemovePile(&temp, temp);
+        AppendCardToPile(&newPile, card);
+        if (temp == NULL) break;
+        if (temp->next == NULL) break;
+        temp = temp->next;
+    }
+    *pile = nullptr;
 }

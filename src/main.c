@@ -82,11 +82,9 @@ int main(int argc, char** argv) {
 	constexpr int PoolSize = PileSize;
 	Pool Pools[PoolSize] = {};
 	for (int pool = 0; pool < PoolSize; pool++) {
-		Pools[pool] = (Pool) {.position = (Vector2) {PADDING_X + (float) pool * OFFSET_X, PADDING_Y}, .gap = (int) OFFSET_Y, .pile = Piles[pool]};
+		Pools[pool] = (Pool) {.position = (Vector2) {PADDING_X + (float) pool * OFFSET_X, PADDING_Y}, .gap = (int) OFFSET_Y, .pile = &Piles[pool]};
 		SetPositionCardFromPool(&Pools[pool]);
 	}
-
-
 
 	// card movement
 	Vector2 MouseOffset = {0, 0};
@@ -184,12 +182,14 @@ int main(int argc, char** argv) {
 		//		release
 		if (IsMouseButtonUp(MOUSE_LEFT_BUTTON)) {
 			if (SelectedPool != -1) {
-				for (int pool = 0; pool < PoolSize; pool++)
-					if (CheckCollisionPointRec((Vector2) {SelectedCard->position.x + (float) CARD_WIDTH / 2, SelectedCard->position.y}, (Rectangle) { Pools[pool].pile->prev->card->position.x, Pools[pool].pile->prev->card->position.y, CARD_WIDTH, CARD_HEIGHT}))
+				for (int pool = 0; pool < PoolSize; pool++) {
+					if (*Pools[pool].pile == nullptr) continue;
+					if (CheckCollisionPointRec((Vector2) {SelectedCard->position.x + (float) CARD_WIDTH / 2, SelectedCard->position.y}, (Rectangle) { (*Pools[pool].pile)->prev->card->position.x, (*Pools[pool].pile)->prev->card->position.y, CARD_WIDTH, CARD_HEIGHT}))
 						// todo add rest of the logic
-						SelectedPile->card->show = true; // remove this
+					SelectedPile->card->show = true; // remove this
 					else
 						SetPositionCardFromPool(&Pools[SelectedPool]);
+				}
 			}
 			Holding = false;
 		}
@@ -230,10 +230,10 @@ int main(int argc, char** argv) {
 		// draw cards per pile
 		for (int pool = 0; pool < PoolSize; pool++) {
 
-			if (Pools[pool].pile == NULL) continue;
+			if (*Pools[pool].pile == NULL) continue;
 
 			// temp pile for getting every card at the loop
-			TempPile = Pools[pool].pile;
+			TempPile = *Pools[pool].pile;
 
 			// looping through all the cards
 			while (TempPile->card != NULL) {
