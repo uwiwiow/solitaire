@@ -50,20 +50,3 @@ void RemovePile(Pile **head, Pile *card) {
 
     free(card);
 }
-
-
-void MoveCardsToPile(Pile **pile, Pile *newPile) {
-    if (!newPile || !pile)
-        return;
-
-    Pile *temp = *pile;
-    while (temp->card != NULL) {
-        Card *card = temp->card;
-        RemovePile(&temp, temp);
-        AppendCardToPile(&newPile, card);
-        if (temp == NULL) break;
-        if (temp->next == NULL) break;
-        temp = temp->next;
-    }
-    *pile = nullptr;
-}

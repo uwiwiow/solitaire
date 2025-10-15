@@ -13,6 +13,4 @@ void AppendCardToPile(Pile **head, Card *card);
 
 void RemovePile(Pile **head, Pile *card);
 
-void MoveCardsToPile(Pile **pile, Pile *newPile);
-
 #endif

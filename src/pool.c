@@ -2,7 +2,7 @@
 
 void SetPositionCardFromPool(const Pool* Pool) {
 
-    if (Pool->pile == nullptr) return;
+    if (*Pool->pile == nullptr) return;
 
     // temp pile for getting every card at the loop
     const Pile *TempPile = *Pool->pile;
@@ -24,4 +24,38 @@ void SetPositionCardFromPool(const Pool* Pool) {
     }
 
 
+}
+
+void MoveCardsToPile(Pool *selectedPool, Card *selectedCard, Pool *newPool) {
+    if (selectedPool == nullptr || selectedCard == nullptr || newPool == nullptr)
+        return;
+
+    Pile *pile = *selectedPool->pile;
+
+    while (pile->card != nullptr) {
+        if (pile->card == selectedCard) break;
+        pile = pile->next;
+    }
+
+    bool run = true;
+    while (run) {
+        Pile *tempPile = pile;
+        Card *tempCard = tempPile->card;
+        if (pile->next == nullptr) run = false;
+        else pile = pile->next;
+        RemovePile(selectedPool->pile, tempPile);
+        tempPile = nullptr;
+        AppendCardToPile(newPool->pile, tempCard);
+        if (pile == nullptr) break;
+    }
+
+    // while (temp->card != nullptr) {
+    //     Card *tempCard = temp->card;
+    //     RemovePile(&temp, temp);
+    //     AppendCardToPile(&newPile, tempCard);
+    //     if (temp == nullptr) break;
+    //     if (temp->next == nullptr) break;
+    //     temp = temp->next;
+    // }
+    // *pile = nullptr;
 }

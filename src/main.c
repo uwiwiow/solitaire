@@ -42,7 +42,7 @@ int main(int argc, char** argv) {
 		Deck[i] = (Card) {i % 13, false, {0, 0}};
 	}
 
-	const Card *SelectedCard = nullptr;
+	Card *SelectedCard = nullptr;
 	bool Holding = false;
 
 
@@ -104,7 +104,7 @@ int main(int argc, char** argv) {
 		if (!Holding)
 			for (int pile = 0; pile < PileSize; pile++) {
 
-				if (Piles[pile] == NULL) continue;
+				if (*Pools[pile].pile == NULL) continue;
 
 				TempPile = Piles[pile]->prev;
 
@@ -135,7 +135,7 @@ int main(int argc, char** argv) {
 						TempPile = TempPile->prev;
 					else
 						break;
-				} while (!Vector2Equals(TempPile->card->position,Piles[pile]->prev->card->position));
+				} while (!Vector2Equals(TempPile->card->position,(*Pools[pile].pile)->prev->card->position));
 			}
 
 
@@ -145,12 +145,15 @@ int main(int argc, char** argv) {
 			if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && CheckCollisionPointRec(MousePosition, (Rectangle)
 				{Stock->prev->card->position.x, Stock->prev->card->position.y, CARD_WIDTH, CARD_HEIGHT})) {
 				for (int pile = 0; pile < PileSize; pile++) {
+
+					if (*Pools[pile].pile == nullptr) continue;
+
 					Card *TempCard = Stock->card;
-					TempCard->position.x = Piles[pile]->prev->card->position.x;
-					TempCard->position.y = Piles[pile]->prev->card->position.y + 30;
+					TempCard->position.x = (*Pools[pile].pile)->prev->card->position.x;
+					TempCard->position.y = (*Pools[pile].pile)->prev->card->position.y + 30;
 					TempCard->show = true;
 					RemovePile(&Stock, Stock);
-					AppendCardToPile(&Piles[pile], TempCard);
+					AppendCardToPile(Pools[pile].pile, TempCard);
 					StockSize--;
 					if (StockSize == 0) break;
 				}
@@ -181,12 +184,11 @@ int main(int argc, char** argv) {
 
 		//		release
 		if (IsMouseButtonUp(MOUSE_LEFT_BUTTON)) {
-			if (SelectedPool != -1) {
+			if (SelectedPool != -1 && Holding) {
 				for (int pool = 0; pool < PoolSize; pool++) {
 					if (*Pools[pool].pile == nullptr) continue;
 					if (CheckCollisionPointRec((Vector2) {SelectedCard->position.x + (float) CARD_WIDTH / 2, SelectedCard->position.y}, (Rectangle) { (*Pools[pool].pile)->prev->card->position.x, (*Pools[pool].pile)->prev->card->position.y, CARD_WIDTH, CARD_HEIGHT}))
-						// todo add rest of the logic
-					SelectedPile->card->show = true; // remove this
+						MoveCardsToPile(&Pools[SelectedPool], SelectedCard, &Pools[pool]);
 					else
 						SetPositionCardFromPool(&Pools[SelectedPool]);
 				}
@@ -304,13 +306,13 @@ int main(int argc, char** argv) {
 
 	// free piles and stock
 	for (int i = 0; i < PileSize; i++) {
-		Pile* current = Piles[i];
+		Pile* current = *Pools[i].pile;
 		while (current != NULL) {
 			Pile* next = current->next;
 			free(current);
 			current = next;
 		}
-		Piles[i] = nullptr;
+		*Pools[i].pile = nullptr;
 	}
 
 	Pile* current = Stock;
