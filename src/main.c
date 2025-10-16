@@ -22,11 +22,11 @@ int main() {
 
 	// textures
 	Texture2D SpadesAtlas = {};
-	LoadTextureCard(&SpadesAtlas, "res/Poker/Top-Down/Cards/Spades-88x124.png");
+	LoadTextureCard(&SpadesAtlas, "res/Poker/Spades-88x124.png");
 	const Texture2D CursorTextures[3] = {
-		LoadTexture("res/kenney_cursor-pack/PNG/Outline/Default/hand_thin_point.png"),
-		LoadTexture("res/kenney_cursor-pack/PNG/Outline/Default/hand_thin_open.png"),
-		LoadTexture("res/kenney_cursor-pack/PNG/Outline/Default/hand_thin_closed.png")
+		LoadTexture("res/kenney_cursor-pack/hand_thin_point.png"),
+		LoadTexture("res/kenney_cursor-pack/hand_thin_open.png"),
+		LoadTexture("res/kenney_cursor-pack/hand_thin_closed.png")
 	};
 
 
