@@ -50,12 +50,12 @@ int main(int argc, char** argv) {
 
 	srand(time(nullptr));
 
-	for (int i = DeckSize - 1; i > 0; i--) {
-		int j = rand() % (i + 1);
-		Card temp = Deck[i];
-		Deck[i] = Deck[j];
-		Deck[j] = temp;
-	}
+	// for (int i = DeckSize - 1; i > 0; i--) {
+	// 	int j = rand() % (i + 1);
+	// 	Card temp = Deck[i];
+	// 	Deck[i] = Deck[j];
+	// 	Deck[j] = temp;
+	// }
 
 
 
@@ -95,7 +95,13 @@ int main(int argc, char** argv) {
 	Pool Pools[PoolSize] = {};
 	for (int pool = 0; pool < PoolSize; pool++) {
 		Pools[pool] = (Pool) {.position = (Vector2) {PADDING_X + (float) pool * OFFSET_X, PADDING_Y}, .gap = (int) OFFSET_Y, .pile = &Piles[pool]};
-		SetPositionCardFromPool(&Pools[pool]);
+		SetPositionCardFromPool(&Pools[pool], nullptr);
+	}
+
+	constexpr int WinPoolSize = DeckSize/K;
+	Pool WinPools[WinPoolSize] = {};
+	for (int pool = 0; pool < WinPoolSize; pool++) {
+		WinPools[pool] = (Pool) {.position = (Vector2) {PADDING_X + (float) pool * (OFFSET_X / 2), HEIGHT - PADDING_Y *2}, .gap = 2, .pile = nullptr};
 	}
 
 	// card movement
@@ -161,7 +167,7 @@ int main(int argc, char** argv) {
 					TempCard->show = true;
 					RemovePile(&Stock, Stock);
 					AppendCardToPile(Pools[pile].pile, TempCard);
-					SetPositionCardFromPool(&Pools[pile]);
+					SetPositionCardFromPool(&Pools[pile], nullptr);
 					StockSize--;
 					if (StockSize == 0) break;
 				}
@@ -219,11 +225,10 @@ int main(int argc, char** argv) {
 
 					if (CheckCollisionPointRec((Vector2) {SelectedCard->position.x + (float) CARD_WIDTH / 2, SelectedCard->position.y}, TempRect)) {
 						MoveCardsToPile(&Pools[SelectedPool], SelectedCard, &Pools[pool]);
-						// todo win condition
-						SetPositionCardFromPool(&Pools[pool]);
+						SetPositionCardFromPool(&Pools[pool], WinPools);
 					}
 				}
-				SetPositionCardFromPool(&Pools[SelectedPool]);
+				SetPositionCardFromPool(&Pools[SelectedPool], nullptr);
 			}
 			Holding = false;
 		}
