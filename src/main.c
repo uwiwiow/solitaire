@@ -81,7 +81,7 @@ int main() {
 	int StockSize = 24;
 	Pile* Stock = {};
 	for (int pileAmount = 0; pileAmount < StockSize; pileAmount++) {
-		Deck[CardIndex].position = (Vector2) {WIDTH - 200, HEIGHT - 180 - (float) pileAmount * 2};
+		Deck[CardIndex].position = (Vector2) {WIDTH - 200, HEIGHT - 228 - (float) pileAmount * -2};
 		AppendCardToPile(&Stock, &Deck[CardIndex]);
 		CardIndex++;
 	}
@@ -254,14 +254,11 @@ int main() {
 
 		// stock
 		if (StockSize) {
-			TempPile = Stock;
-			while (TempPile->card != NULL) {
+			TempPile = Stock->prev;
+			 do {
 				DrawCard(SpadesAtlas, *TempPile->card);
-				if (TempPile->next != NULL)
-					TempPile = TempPile->next;
-				else
-					break;
-			}
+				TempPile = TempPile->prev;
+			} while (TempPile->card != Stock->prev->card);
 		}
 
 
