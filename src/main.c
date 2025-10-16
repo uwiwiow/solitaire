@@ -95,13 +95,14 @@ int main(int argc, char** argv) {
 	Pool Pools[PoolSize] = {};
 	for (int pool = 0; pool < PoolSize; pool++) {
 		Pools[pool] = (Pool) {.position = (Vector2) {PADDING_X + (float) pool * OFFSET_X, PADDING_Y}, .gap = (int) OFFSET_Y, .pile = &Piles[pool]};
-		SetPositionCardFromPool(&Pools[pool], nullptr);
+		SetPositionCardFromPool(&Pools[pool]);
 	}
 
 	constexpr int WinPoolSize = DeckSize/K;
 	Pool WinPools[WinPoolSize] = {};
+	Pile* WinPiles[WinPoolSize] = {nullptr, nullptr, nullptr, nullptr};
 	for (int pool = 0; pool < WinPoolSize; pool++) {
-		WinPools[pool] = (Pool) {.position = (Vector2) {PADDING_X + (float) pool * (OFFSET_X / 2), HEIGHT - PADDING_Y *2}, .gap = 2, .pile = nullptr};
+		WinPools[pool] = (Pool) {.position = (Vector2) {PADDING_X + (float) pool * (OFFSET_X / 2), HEIGHT - PADDING_Y *2}, .gap = 2, .pile = &WinPiles[pool]};
 	}
 
 	// card movement
@@ -167,7 +168,7 @@ int main(int argc, char** argv) {
 					TempCard->show = true;
 					RemovePile(&Stock, Stock);
 					AppendCardToPile(Pools[pile].pile, TempCard);
-					SetPositionCardFromPool(&Pools[pile], nullptr);
+					SetPositionCardFromPool(&Pools[pile]);
 					StockSize--;
 					if (StockSize == 0) break;
 				}
@@ -225,10 +226,11 @@ int main(int argc, char** argv) {
 
 					if (CheckCollisionPointRec((Vector2) {SelectedCard->position.x + (float) CARD_WIDTH / 2, SelectedCard->position.y}, TempRect)) {
 						MoveCardsToPile(&Pools[SelectedPool], SelectedCard, &Pools[pool]);
-						SetPositionCardFromPool(&Pools[pool], WinPools);
+						CheckAKPool(&Pools[pool], WinPools);
+						SetPositionCardFromPool(&Pools[pool]);
 					}
 				}
-				SetPositionCardFromPool(&Pools[SelectedPool], nullptr);
+				SetPositionCardFromPool(&Pools[SelectedPool]);
 			}
 			Holding = false;
 		}
@@ -266,7 +268,7 @@ int main(int argc, char** argv) {
 
 
 		// deck
-		// draw cards per pile
+		// draw cards per pool
 		for (int pool = 0; pool < PoolSize; pool++) {
 
 			if (*Pools[pool].pile == NULL) continue;
@@ -287,6 +289,27 @@ int main(int argc, char** argv) {
 					// check if the selected card is the selected one
 					if (Vector2Equals(SelectedCard->position, TempPile->card->position))
 						DrawCardBorder(SpadesAtlas, *SelectedCard);
+
+				// go next card or if there aren't more cards, then break
+				if (TempPile->next != NULL)
+					TempPile = TempPile->next;
+				else
+					break;
+			}
+
+		}
+
+		for (int pool = 0; pool < WinPoolSize; pool++) {
+
+			if (*WinPools[pool].pile == NULL) continue;
+
+			// temp pile for getting every card at the loop
+			TempPile = *WinPools[pool].pile;
+
+			// looping through all the cards
+			while (TempPile->card != NULL) {
+
+				DrawCard(SpadesAtlas, *TempPile->card);
 
 				// go next card or if there aren't more cards, then break
 				if (TempPile->next != NULL)

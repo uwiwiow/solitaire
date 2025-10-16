@@ -1,15 +1,11 @@
 #include "pool.h"
 
-void SetPositionCardFromPool(const Pool* pool, const Pool* winPools) {
+void SetPositionCardFromPool(const Pool* pool) {
 
     if (*pool->pile == nullptr) return;
 
     // temp pile for getting every card at the loop
     const Pile *TempPile = *pool->pile;
-
-    bool possibleWin = true;
-    int CardNumber = 12;
-    const Pile *winPile = nullptr;
 
     // looping through all the cards
     while (TempPile->card != nullptr) {
@@ -20,19 +16,39 @@ void SetPositionCardFromPool(const Pool* pool, const Pool* winPools) {
         else
             TempPile->card->position = pool->position;
 
+        // go next card or if there aren't more cards, then break
+        if (TempPile->next != nullptr)
+            TempPile = TempPile->next;
+        else
+            break;
+    }
+
+
+}
+
+void CheckAKPool(const Pool* pool, const Pool* winPools) {
+
+    if (*pool->pile == nullptr) return;
+
+    const Pile *TempPile = *pool->pile;
+    bool possibleWin = true;
+    int CardNumber = 12;
+    const Pile *winPile = nullptr;
+
+    while (TempPile->card != nullptr) {
+
         if (TempPile->card->number == K && TempPile->card->show) {
             possibleWin = true;
             winPile = TempPile;
             CardNumber = 12;
         }
 
-        if (TempPile->card->number == CardNumber) {
+        if (TempPile->card->number == CardNumber)
             CardNumber--;
-        }
-        else possibleWin = false;
+        else
+            possibleWin = false;
 
 
-        // go next card or if there aren't more cards, then break
         if (TempPile->next != nullptr)
             TempPile = TempPile->next;
         else
@@ -45,14 +61,12 @@ void SetPositionCardFromPool(const Pool* pool, const Pool* winPools) {
         if (winPools == nullptr) return;
 
         int winPool = 0;
-        for (int i = 0; i < 4; i++) {
-            if (winPools[i].pile == nullptr) {
-                winPool = i;
+        for (winPool = 0; winPool < 4; winPool++)
+            if (winPools[winPool].pile == nullptr)
                 break;
-            }
-        }
 
         MoveCardsToPile(pool, winPile->card, &winPools[winPool]);
+        SetPositionCardFromPool(&winPools[winPool]);
     }
 
 }
