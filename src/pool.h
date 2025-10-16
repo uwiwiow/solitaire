@@ -16,7 +16,9 @@ typedef struct Pool {
     Pile **pile;
 } Pool;
 
-void SetPositionCardFromPool(const Pool* pool, const Pool* winPools);
+void SetPositionCardFromPool(const Pool* pool);
+
+void CheckAKPool(const Pool* pool, const Pool* winPools);
 
 void MoveCardsToPile(const Pool *selectedPool, const  Card *selectedCard, const  Pool *newPool);
 
