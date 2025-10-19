@@ -1,8 +1,7 @@
 #include "card.h"
 
 void LoadTextureCard(Texture2D *CardAtlas, const char* filename) {
-    Image Image = LoadImage(filename);
-    ImageColorReplace(&Image, (Color){0, 128, 128, 255}, BLANK);
+    const Image Image = LoadImage(filename);
     *CardAtlas = LoadTextureFromImage(Image);
     UnloadImage(Image);
 }
