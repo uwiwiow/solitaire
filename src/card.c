@@ -1,10 +1,5 @@
 #include "card.h"
 
-void LoadTextureCard(Texture2D *CardAtlas, const char* filename) {
-    const Image Image = LoadImage(filename);
-    *CardAtlas = LoadTextureFromImage(Image);
-    UnloadImage(Image);
-}
 
 Rectangle GetCardRect(const int index) {
     const int x = (index % CARD_ATLAS_COLS) * CARD_WIDTH;
@@ -12,14 +7,9 @@ Rectangle GetCardRect(const int index) {
     return (Rectangle){ (float)x, (float)y, (float)CARD_WIDTH, (float)CARD_HEIGHT };
 }
 
-void DrawCard(const Texture2D atlas, const Card card) {
-    const Rectangle src = GetCardRect(card.show? card.number : BACK);
-    const Rectangle dest = { card.position.x, card.position.y, src.width, src.height };
-    DrawTexturePro(atlas, src, dest, (Vector2){0, 0}, 0.0f, WHITE);
-}
-
-void DrawCardBorder(const Texture2D atlas, const Card card) {
-    const Rectangle src = GetCardRect(BORDER);
-    const Rectangle dest = { card.position.x, card.position.y, src.width, src.height };
-    DrawTexturePro(atlas, src, dest, (Vector2){0, 0}, 0.0f, WHITE);
+void LoadTextureCard(Texture2D *CardTexture, const char* filename, const int Index) {
+    Image CardImage = LoadImage(filename);
+    ImageCrop(&CardImage, GetCardRect(Index));
+    *CardTexture = LoadTextureFromImage(CardImage);
+    UnloadImage(CardImage);
 }

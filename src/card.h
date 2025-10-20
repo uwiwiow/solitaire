@@ -15,10 +15,6 @@ constexpr int CARD_ATLAS_COLS = 5;
 constexpr int CARD_WIDTH = 88;
 constexpr int CARD_HEIGHT = 124;
 
-void LoadTextureCard(Texture2D *CardAtlas, const char* filename);
-
-void DrawCard(Texture2D atlas, Card card);
-
-void DrawCardBorder(Texture2D atlas, Card card);
+void LoadTextureCard(Texture2D *CardTexture, const char* filename, int Index);
 
 #endif

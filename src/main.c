@@ -7,8 +7,8 @@
 #include "pool.h"
 #include "debug.h"
 
-constexpr int WIDTH = 1240;
-constexpr int HEIGHT = 720;
+constexpr int SCREEN_WIDTH = 1240;
+constexpr int SCREEN_HEIGHT = 720;
 
 
 
@@ -16,13 +16,17 @@ int main() {
 
 	// init
 	SetTraceLogLevel(LOG_WARNING);
-	InitWindow(WIDTH, HEIGHT, "Solitaire");
+	InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Solitaire");
 
 
 
 	// textures
-	Texture2D SpadesAtlas = {};
-	LoadTextureCard(&SpadesAtlas, "res/Poker/Spades-88x124.png");
+	constexpr int CardTexturesCount = 15;
+	Texture2D SpadeTextures[CardTexturesCount] = {};
+	for (int i = 0; i < CardTexturesCount; i++) {
+		LoadTextureCard(&SpadeTextures[i], "res/Poker/Spades-88x124.png", i);
+	}
+
 	const Texture2D CursorTextures[3] = {
 		LoadTexture("res/kenney_cursor-pack/hand_thin_point.png"),
 		LoadTexture("res/kenney_cursor-pack/hand_thin_open.png"),
@@ -81,7 +85,7 @@ int main() {
 	int StockSize = 24;
 	Pile* Stock = {};
 	for (int pileAmount = 0; pileAmount < StockSize; pileAmount++) {
-		Deck[CardIndex].position = (Vector2) {WIDTH - 200, HEIGHT - 228 - (float) pileAmount * -2};
+		Deck[CardIndex].position = (Vector2) {SCREEN_WIDTH - 200, SCREEN_HEIGHT - 228 - (float) pileAmount * -2};
 		AppendCardToPile(&Stock, &Deck[CardIndex]);
 		CardIndex++;
 	}
@@ -102,12 +106,23 @@ int main() {
 	Pool WinPools[WinPoolSize] = {};
 	Pile* WinPiles[WinPoolSize] = {nullptr, nullptr, nullptr, nullptr};
 	for (int pool = 0; pool < WinPoolSize; pool++) {
-		WinPools[pool] = (Pool) {.position = (Vector2) {PADDING_X + (float) pool * OFFSET_X, HEIGHT - 180}, .gap = -2, .pile = &WinPiles[pool]};
+		WinPools[pool] = (Pool) {.position = (Vector2) {PADDING_X + (float) pool * OFFSET_X, SCREEN_HEIGHT - 180}, .gap = -2, .pile = &WinPiles[pool]};
 	}
+
+
 
 	// card movement
 	Vector2 MouseOffset = {0, 0};
 	Vector2 CardOffset = {0, 0};
+
+
+
+	// timer
+	double Timer = 0.0f;
+	double TimeStart = 0.0f;
+	double TimeFinish = 0.0f;
+	bool TimeStarted = false;
+	bool TimeFinished = false;
 
 
 	while(!WindowShouldClose()) {
@@ -115,6 +130,8 @@ int main() {
 		Debug();
 
 		const Vector2 MousePosition = GetMousePosition();
+
+		Timer = GetTime();
 
 
 
@@ -156,6 +173,11 @@ int main() {
 				} while (!Vector2Equals(TempPile->card->position,(*Pools[pile].pile)->prev->card->position));
 			}
 
+		if (*WinPools[WinPoolSize - 1].pile != nullptr) {
+			SelectedCard = nullptr;
+			if (!TimeFinished) TimeFinish = Timer - TimeStart;
+			TimeFinished = true;
+		}
 
 
 		// stock
@@ -178,7 +200,13 @@ int main() {
 
 		// card movement
 		//		press
-		if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && SelectedCard) {
+		if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && SelectedCard != nullptr) {
+
+			if (!TimeStarted) {
+				TimeStart = Timer;
+				TimeStarted = true;
+			}
+
 			Holding = true;
 
 
@@ -256,7 +284,7 @@ int main() {
 		if (StockSize) {
 			TempPile = Stock->prev;
 			 do {
-				DrawCard(SpadesAtlas, *TempPile->card);
+			 	DrawTextureV(SpadeTextures[BACK], TempPile->card->position, WHITE);
 				TempPile = TempPile->prev;
 			} while (TempPile->card != Stock->prev->card);
 		}
@@ -277,13 +305,14 @@ int main() {
 				if (TempPile->card == SelectedCard && Holding)
 					break;
 
-				DrawCard(SpadesAtlas, *TempPile->card);
+				DrawTextureV(SpadeTextures[TempPile->card->show? TempPile->card->number: BACK], TempPile->card->position, WHITE);
 
 				// draw border if the card is selected
 				if (SelectedCard)
 					// check if the selected card is the selected one
 					if (Vector2Equals(SelectedCard->position, TempPile->card->position))
-						DrawCardBorder(SpadesAtlas, *SelectedCard);
+						DrawTextureV(SpadeTextures[BORDER], TempPile->card->position, WHITE);
+
 
 				// go next card or if there aren't more cards, then break
 				if (TempPile->next != NULL)
@@ -304,7 +333,7 @@ int main() {
 			// looping through all the cards
 			while (TempPile->card != NULL) {
 
-				DrawCard(SpadesAtlas, *TempPile->card);
+				DrawTextureV(SpadeTextures[TempPile->card->number], TempPile->card->position, WHITE);
 
 				// go next card or if there aren't more cards, then break
 				if (TempPile->next != NULL)
@@ -323,7 +352,7 @@ int main() {
 			// looping through all the cards
 			while (TempPile->card != NULL) {
 
-				DrawCard(SpadesAtlas, *TempPile->card);
+				DrawTextureV(SpadeTextures[TempPile->card->number], TempPile->card->position, WHITE);
 
 				// go next card or if there aren't more cards, then break
 				if (TempPile->next != NULL)
@@ -333,16 +362,20 @@ int main() {
 			}
 		}
 
+		DrawText(TextFormat("%02d:%02.f",  (TimeFinished? (int) TimeFinish : (int) Timer - TimeStarted) / 60, (double)((int) (TimeFinished? TimeFinish : Timer - TimeStarted) % 60)), 10, 10, 24, BLACK);
+
+		if (TimeFinished)
+			DrawText("YOU WON", (SCREEN_WIDTH - MeasureText("YOU WON", 64)) / 2 , (SCREEN_HEIGHT - 64)/2, 64, GOLD);
+
 
 		// mouse
 		DrawTexture(*Cursor, (int) MousePosition.x - Cursor->width/4, (int) MousePosition.y - Cursor->height/4, WHITE);
 
 
-		if (SelectedCard != nullptr)
-			DebugDraw(
-				LINE("%.0f\t%.0f", SelectedCard->position.x, SelectedCard->position.y),
-				LINE("%.0f\t%.0f", GetMousePosition().x, GetMousePosition().y)
-			);
+		DebugDraw(
+			LINE("%.0f\t%.0f", SelectedCard != nullptr? SelectedCard->position.x : 0, SelectedCard != nullptr ? SelectedCard->position.y : 0),
+			LINE("%.0f\t%.0f", GetMousePosition().x, GetMousePosition().y)
+		);
 
 
 		EndDrawing();
@@ -351,7 +384,9 @@ int main() {
 
 
 	// unload textures
-	UnloadTexture(SpadesAtlas);
+	for (int i = 0; i < CardTexturesCount; i++) {
+		UnloadTexture(SpadeTextures[i]);
+	}
 
 	for (int i = 0; i < 3; i++)
 		UnloadTexture(CursorTextures[i]);

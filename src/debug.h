@@ -7,7 +7,7 @@
 
 #include <raylib.h>
 
-bool debug = 1;
+bool debug = 0;
 
 // change debug visibility, place in loop
 #define Debug()                                 \
